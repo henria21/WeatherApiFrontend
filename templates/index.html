@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            background-color: #f9f9f9;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            background-color: white;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+            display: none;
+        }
+
+        .status.loading {
+            display: block;
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status.success {
+            display: block;
+            background-color: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .status.error {
+            display: block;
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        .weather-result {
+            margin-top: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 5px;
+            display: none;
+        }
+
+        .weather-result.show {
+            display: block;
+        }
+
+        .weather-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+        }
+
+        .weather-item:last-child {
+            border-bottom: none;
+        }
+
+        .weather-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .weather-value {
+            color: #666;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #1976d2;
+            border-radius: 100%;
+            animation: sk-bounce 1.4s infinite ease-in-out both;
+        }
+
+        .spinner:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .spinner:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes sk-bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌤️ Weather App</h1>
+        
+        <div class="form-group">
+            <label for="citySelect">Select City:</label>
+            <select id="citySelect">
+                <option value="">-- Choose a city --</option>
+            </select>
+        </div>
+
+        <button id="submitBtn" onclick="fetchWeather()">Get Weather</button>
+
+        <div id="status" class="status"></div>
+
+        <div id="weatherResult" class="weather-result">
+            <div class="weather-item">
+                <span class="weather-label">City:</span>
+                <span class="weather-value" id="resultCity"></span>
+            </div>
+            <div class="weather-item">
+                <span class="weather-label">Temperature:</span>
+                <span class="weather-value" id="resultTemp"></span>
+            </div>
+            <div class="weather-item">
+                <span class="weather-label">Description:</span>
+                <span class="weather-value" id="resultDesc"></span>
+            </div>
+            <div class="weather-item">
+                <span class="weather-label">Humidity:</span>
+                <span class="weather-value" id="resultHumidity"></span>
+            </div>
+            <div class="weather-item">
+                <span class="weather-label">Wind Speed:</span>
+                <span class="weather-value" id="resultWind"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Populate cities on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/api/cities')
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById('citySelect');
+                    data.cities.forEach(city => {
+                        const option = document.createElement('option');
+                        option.value = city;
+                        option.textContent = city;
+                        select.appendChild(option);
+                    });
+                });
+        });
+
+        function fetchWeather() {
+            const city = document.getElementById('citySelect').value;
+            const submitBtn = document.getElementById('submitBtn');
+            const statusDiv = document.getElementById('status');
+            const resultDiv = document.getElementById('weatherResult');
+
+            if (!city) {
+                statusDiv.textContent = 'Please select a city';
+                statusDiv.className = 'status error';
+                return;
+            }
+
+            // Show loading state
+            statusDiv.textContent = 'Loading...';
+            statusDiv.className = 'status loading';
+            resultDiv.classList.remove('show');
+            submitBtn.disabled = true;
+
+            fetch(`/api/weather?city=${encodeURIComponent(city)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        statusDiv.textContent = 'Error: ' + data.error;
+                        statusDiv.className = 'status error';
+                    } else {
+                        // Display weather data
+                        document.getElementById('resultCity').textContent = data.city;
+                        document.getElementById('resultTemp').textContent = data.temperature;
+                        document.getElementById('resultDesc').textContent = data.description;
+                        document.getElementById('resultHumidity').textContent = data.humidity || 'N/A';
+                        document.getElementById('resultWind').textContent = data.wind_speed || 'N/A';
+
+                        statusDiv.textContent = '✓ Weather data loaded successfully';
+                        statusDiv.className = 'status success';
+                        resultDiv.classList.add('show');
+                    }
+                })
+                .catch(error => {
+                    statusDiv.textContent = 'Error: ' + error.message;
+                    statusDiv.className = 'status error';
+                    console.error('Error:', error);
+                })
+                .finally(() => {
+                    submitBtn.disabled = false;
+                });
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('citySelect').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                fetchWeather();
+            }
+        });
+    </script>
+</body>
+</html>
