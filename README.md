@@ -14,9 +14,10 @@ A modern web-based frontend application built with Flask to display weather info
 
 ## Requirements
 
-- Python 3.7+
+- Python 3.11+
 - Flask 3.0.0
 - requests 2.31.0
+- pytest 8.1.1
 - Docker (optional, for containerized deployment)
 
 ## Installation
@@ -24,8 +25,9 @@ A modern web-based frontend application built with Flask to display weather info
 ### Prerequisites
 
 Before running the frontend, ensure the backend API is running:
+
 ```bash
-cd C:\Users\henri\source\repos\WeatherApiBackend
+cd path/to/WeatherApiBackend
 python weather_app.py
 ```
 
@@ -34,51 +36,55 @@ The backend will be available at `http://127.0.0.1:8000`
 ### Local Setup
 
 1. Clone/navigate to the frontend directory:
+
 ```bash
-cd C:\Users\henri\source\repos\WeatherApiFrontend
+cd path/to/WeatherApiFrontend
 ```
 
-2. Create a virtual environment (optional but recommended):
+1. Create a virtual environment (optional but recommended):
+
 ```bash
 python -m venv venv
-venv\Scripts\activate
+venv/Scripts/activate
 ```
 
-3. Install dependencies:
+1. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Run the Flask application:
+1. Run the Flask application:
+
 ```bash
 python flask_app.py
 ```
 
 The frontend will be available at `http://localhost:5000`
 
-## Configuring Backend URL
+## Configuration
 
-The frontend communicates with the backend API. To configure the backend URL:
+The application is configured via environment variables:
 
-1. Open [flask_app.py](flask_app.py#L7)
-2. Modify the `BACKEND_URL` variable:
+| Variable | Default | Description |
+| --- | --- | --- |
+| `BACKEND_URL` | `http://127.0.0.1:8000` | URL of the FastAPI backend |
+| `PORT` | `5000` | Port for the Flask server |
+| `HOST` | `127.0.0.1` | Host to bind the Flask server |
+| `FLASK_DEBUG` | `false` | Enable debug mode (`true`/`false`) |
 
-```python
-# Default: backend on same machine
-BACKEND_URL = "http://127.0.0.1:8000"
+Example:
 
-# For remote backend, update to:
-BACKEND_URL = "http://your-backend-server.com:8000"
+```bash
+BACKEND_URL=http://my-backend:8000 PORT=8080 python flask_app.py
 ```
-
-3. Save and restart the Flask application
 
 ## Dropdown Options
 
 The frontend supports the following 4 cities:
 
 | City | Region |
-|------|--------|
+| --- | --- |
 | New York | North America |
 | London | Europe |
 | Tokyo | Asia |
@@ -91,14 +97,16 @@ Cities are dynamically loaded from the backend via the `/api/cities` endpoint.
 ### Method 1: Direct Python Execution
 
 **Terminal 1 - Start the backend:**
+
 ```bash
-cd C:\Users\henri\source\repos\WeatherApiBackend
+cd path/to/WeatherApiBackend
 python weather_app.py
 ```
 
 **Terminal 2 - Start the frontend:**
+
 ```bash
-cd C:\Users\henri\source\repos\WeatherApiFrontend
+cd path/to/WeatherApiFrontend
 python flask_app.py
 ```
 
@@ -107,13 +115,15 @@ Access the app at: `http://localhost:5000`
 ### Method 2: Docker Container
 
 1. Build the Docker image:
+
 ```bash
 docker build -t weather-frontend .
 ```
 
-2. Run the container:
+1. Run the container:
+
 ```bash
-docker run -p 5000:5000 --env BACKEND_URL=http://host.docker.internal:8000 weather-frontend
+docker run -p 5000:5000 -e BACKEND_URL=http://host.docker.internal:8000 weather-frontend
 ```
 
 Access the app at: `http://localhost:5000`
@@ -121,7 +131,8 @@ Access the app at: `http://localhost:5000`
 ## Expected UI Layout
 
 ### Desktop View
-```
+
+```text
 ┌─────────────────────────────────────────┐
 │         🌤️ Weather App                   │
 ├─────────────────────────────────────────┤
@@ -151,6 +162,7 @@ Access the app at: `http://localhost:5000`
 ## Screenshots
 
 ### Application Home Screen
+
 - Purple gradient background
 - Centered white container
 - Title: "🌤️ Weather App"
@@ -158,7 +170,9 @@ Access the app at: `http://localhost:5000`
 - Large "Get Weather" button
 
 ### Weather Result Display
+
 After selecting a city and clicking the button:
+
 - Loading state with spinner animation
 - Success message in green box
 - Weather details displayed in a card format:
@@ -169,6 +183,7 @@ After selecting a city and clicking the button:
   - Wind speed in m/s
 
 ### Error States
+
 - Red alert box for connection errors
 - Clear error messages for missing cities
 - "Please select a city" validation
@@ -179,11 +194,15 @@ After selecting a city and clicking the button:
 
 **GET** `/` - Serves the main HTML page
 
+**GET** `/health` - Health check endpoint
+
 **GET** `/api/weather?city=<city_name>` - Proxy endpoint to get weather
+
 - Query Parameters: `city` (required)
 - Response: JSON weather data
 
 **GET** `/api/cities` - Get available cities
+
 - Response: `{"cities": ["New York", "London", "Tokyo", "Paris"]}`
 
 ### Backend Integration
@@ -191,11 +210,13 @@ After selecting a city and clicking the button:
 The frontend acts as a proxy to the FastAPI backend:
 
 **Backend Endpoint:**
-```
+
+```text
 GET http://127.0.0.1:8000/weather?location=<city_name>&include_extra=true
 ```
 
 **Sample Response:**
+
 ```json
 {
   "city": "New York",
@@ -208,14 +229,22 @@ GET http://127.0.0.1:8000/weather?location=<city_name>&include_extra=true
 
 ## Project Structure
 
-```
+```text
 WeatherApiFrontend/
 ├── flask_app.py              # Main Flask application
+├── weather_frontend.py       # Desktop Tkinter GUI (standalone)
+├── test_flask_app.py         # Unit tests
 ├── requirements.txt          # Python dependencies
 ├── Dockerfile                # Docker configuration
 ├── README.md                 # This file
 └── templates/
     └── index.html            # Web UI template
+```
+
+## Running Tests
+
+```bash
+pytest test_flask_app.py -v
 ```
 
 ## Application Flow
@@ -234,11 +263,11 @@ WeatherApiFrontend/
 ## Troubleshooting
 
 | Issue | Solution |
-|-------|----------|
+| --- | --- |
 | "Cannot connect to backend" | Ensure backend API is running on `http://127.0.0.1:8000` |
 | Dropdown is empty | Check backend `/api/cities` endpoint is responding |
 | "City not found" error | Verify city name spelling and exists in OpenWeatherMap database |
-| Port 5000 already in use | Change `app.run(port=5001)` in flask_app.py |
+| Port 5000 already in use | Set `PORT=5001` environment variable |
 | Docker connection errors | Use `host.docker.internal` for localhost references on Windows |
 
 ## Notes
@@ -253,7 +282,7 @@ WeatherApiFrontend/
 For production deployment:
 
 1. Use a production WSGI server (gunicorn, waitress)
-2. Set `debug=False` in flask_app.py
-3. Configure environment variables for backend URL
+2. Set `FLASK_DEBUG=false` (default)
+3. Set `BACKEND_URL` environment variable to your backend address
 4. Use Docker for containerized deployment
 5. Set up reverse proxy (nginx) for load balancing
