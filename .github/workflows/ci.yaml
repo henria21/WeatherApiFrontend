@@ -41,7 +41,7 @@ jobs:
         env:
           GITOPS_PAT: ${{ secrets.GITOPS_PAT }}
         run: |
-          git clone https://x-access-token:${GITOPS_PAT}@github.com/henria/gitops-application.git
+          git clone https://x-access-token:${GITOPS_PAT}@github.com/henria21/gitops-application.git
           cd gitops-application
 
           # Bump the image tag in values-dev.yaml
