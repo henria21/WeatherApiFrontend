@@ -3,7 +3,11 @@
     "allow": [
       "Bash(find . -not -path */node_modules/* -type d)",
       "Bash(pip install *)",
-      "Bash(python -m pytest test_flask_app.py -v)"
+      "Bash(python -m pytest test_flask_app.py -v)",
+      "Bash(git checkout *)",
+      "Bash(git merge *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
