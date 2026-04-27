@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find . -not -path */node_modules/* -type d)"
+      "Bash(find . -not -path */node_modules/* -type d)",
+      "Bash(pip install *)",
+      "Bash(python -m pytest test_flask_app.py -v)"
     ]
   }
 }
